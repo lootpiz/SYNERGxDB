@@ -1,12 +1,11 @@
-# SYNERGxDB
+**Development of the prototype of the SYNERGxDB**  
 ![SYNERGxDB logo](./imgs/SYNERGxDB_icon.png)  
-Development of the prototype of the SYNERGxDB  
 [Prototype](http://public.lootpiz.com/SYNERGxDB/)  
-[Production](http://SYNERGxDB.ca/)  
 
 ----
 ### Project
- * ~~cdCocktails (cancer-drug cocktails)~~ SYNERGxDB
+ * ~~cdCocktails (cancer-drug cocktails)~~ (Oct 8th, 2018)
+ * SYNERGxDB
 
 ### Intro
  * We propose to integrate multiple drug combination screening datasets and provide a web-tool to discover effective drug combinations of PAN-cancer or specific tumor types in order to accelerate precision oncology and bring significant improvement in patient outcomes.
@@ -39,4 +38,5 @@ Development of the prototype of the SYNERGxDB
    * [DrugCombDB (http://drugcombdb.denglab.org/)](https://www.ncbi.nlm.nih.gov/pubmed/31665429)
    * [DrugComb (https://drugcomb.fimm.fi/)](https://www.ncbi.nlm.nih.gov/pubmed/31066443)
    
-   
+### Production server
+ * http://SYNERGxDB.ca/
