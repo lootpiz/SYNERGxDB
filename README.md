@@ -1,6 +1,7 @@
-**Development of the prototype of the SYNERGxDB**  
-![SYNERGxDB logo](./imgs/SYNERGxDB_icon.png)  
-[Prototype](http://public.lootpiz.com/SYNERGxDB/)  
+![SYNERGxDB logo](./imgs/SYNERGxDB_icon.png)   
+
+**Development of the prototype**  
+Prototype is still running and available [here](http://public.lootpiz.com/SYNERGxDB/)  
 
 ----
 ### Project
@@ -39,4 +40,4 @@
    * [DrugComb (https://drugcomb.fimm.fi/)](https://www.ncbi.nlm.nih.gov/pubmed/31066443)
    
 ### Production server
- * http://SYNERGxDB.ca/
+ * http://SYNERGxDB.ca/  
