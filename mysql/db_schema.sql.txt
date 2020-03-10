@@ -1,0 +1,499 @@
+-- Updated on June 20, 2019
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Schema synergxdb
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema synergxdb
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `synergxdb` DEFAULT CHARACTER SET utf8 ;
+USE `synergxdb` ;
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Sample`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`Sample` (
+  `idSample` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(40) NOT NULL,
+  `idCellosaurus` VARCHAR(25) NULL DEFAULT NULL,
+  `sex` VARCHAR(5) NULL DEFAULT NULL,
+  `age` INT(11) NULL DEFAULT NULL,
+  `disease` VARCHAR(50) NULL DEFAULT NULL,
+  `origin` VARCHAR(50) NULL DEFAULT NULL,
+  `description` VARCHAR(255) NULL DEFAULT NULL,
+  `tissue` VARCHAR(25) NOT NULL,
+  PRIMARY KEY (`idSample`),
+  UNIQUE INDEX `idCellosaurus_UNIQUE` (`idCellosaurus` ASC))
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Drug`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`Drug` (
+  `idDrug` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `atcCode` VARCHAR(255) NULL DEFAULT NULL,
+  `idDrugBank` VARCHAR(25) NULL DEFAULT NULL,
+  `idPubChem` VARCHAR(45) NULL DEFAULT NULL,
+  `description` VARCHAR(255) NULL DEFAULT NULL,
+  PRIMARY KEY (`idDrug`),
+  UNIQUE INDEX `idDrugBank_UNIQUE` (`idDrugBank` ASC),
+  UNIQUE INDEX `idPubChem_UNIQUE` (`idPubChem` ASC))
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Combo_Design`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`Combo_Design` (
+  `idCombo_Design` INT(11) NOT NULL AUTO_INCREMENT,
+  `idSample` INT(11) NOT NULL,
+  `idDrugA` INT(11) NOT NULL,
+  `idDrugB` INT(11) NOT NULL,
+  PRIMARY KEY (`idCombo_Design`),
+  UNIQUE INDEX `idxDrugCombo` (`idSample` ASC, `idDrugA` ASC, `idDrugB` ASC),
+  INDEX `fk_Mono_exp_Drug_idx` (`idDrugA` ASC),
+  INDEX `fk_Mono_exp_Cellline1_idx` (`idSample` ASC),
+  INDEX `fk_Mono_exp_DrugB_idx` (`idDrugB` ASC),
+  CONSTRAINT `fk_Mono_exp_Cellline11`
+    FOREIGN KEY (`idSample`)
+    REFERENCES `synergxdb`.`Sample` (`idSample`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Mono_exp_DrugA0`
+    FOREIGN KEY (`idDrugA`)
+    REFERENCES `synergxdb`.`Drug` (`idDrug`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Mono_exp_DrugB0`
+    FOREIGN KEY (`idDrugB`)
+    REFERENCES `synergxdb`.`Drug` (`idDrug`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Source`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`Source` (
+  `idSource` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) NOT NULL,
+  `no_samples` INT(11) NOT NULL,
+  `no_drugs` INT(11) NOT NULL,
+  `pmID` VARCHAR(20) NULL DEFAULT NULL,
+  `author` VARCHAR(255) NULL DEFAULT NULL,
+  `combo` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`idSource`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Combo_Matrix`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`Combo_Matrix` (
+  `idCombo_Matrix` INT(11) NOT NULL AUTO_INCREMENT,
+  `idCombo_Design` INT(11) NOT NULL,
+  `concA` DOUBLE NOT NULL,
+  `concB` DOUBLE NOT NULL,
+  `raw_matrix` DOUBLE NOT NULL,
+  `bliss_matrix` DOUBLE NULL DEFAULT NULL,
+  `loewe_matrix` DOUBLE NULL DEFAULT NULL,
+  `hsa_matrix` DOUBLE NULL DEFAULT NULL,
+  `zip_matrix` DOUBLE NULL DEFAULT NULL,
+  `idSource` INT(11) NOT NULL,
+  PRIMARY KEY (`idCombo_Matrix`),
+  INDEX `idCombo_Design_idx` (`idCombo_Design` ASC),
+  INDEX `idxCombo` (`idCombo_Design` ASC),
+  INDEX `idxCombo2` (`idCombo_Design` ASC, `concA` ASC, `concB` ASC),
+  INDEX `fk_Combo_Matrix_Source1_idx` (`idSource` ASC),
+  INDEX `idxCombo3` (`idCombo_Design` ASC, `idSource` ASC),
+  INDEX `idxCombo4` (`idCombo_Design` ASC, `concA` ASC, `concB` ASC, `idSource` ASC),
+  CONSTRAINT `fk_Combo_Matrix_Source1`
+    FOREIGN KEY (`idSource`)
+    REFERENCES `synergxdb`.`Source` (`idSource`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `idCombo_Design`
+    FOREIGN KEY (`idCombo_Design`)
+    REFERENCES `synergxdb`.`Combo_Design` (`idCombo_Design`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`CopyNumber`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`CopyNumber` (
+  `idSample` INT(11) NOT NULL,
+  `DepMap_ID` VARCHAR(20) NOT NULL,
+  `gene` VARCHAR(100) NOT NULL,
+  `cn` DOUBLE NULL DEFAULT NULL,
+  INDEX `fk_idSample_cn` (`idSample` ASC),
+  CONSTRAINT `fk_idSample_cn`
+    FOREIGN KEY (`idSample`)
+    REFERENCES `synergxdb`.`Sample` (`idSample`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Metabolomics`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`Metabolomics` (
+  `idMetabolomics` INT(11) NOT NULL AUTO_INCREMENT,
+  `idSample` INT(11) NOT NULL,
+  `DepMap_ID` VARCHAR(20) NOT NULL,
+  `2-aminoadipate` DOUBLE NULL DEFAULT NULL,
+  `3-phosphoglycerate` DOUBLE NULL DEFAULT NULL,
+  `alpha-glycerophosphate` DOUBLE NULL DEFAULT NULL,
+  `4-pyridoxate` DOUBLE NULL DEFAULT NULL,
+  `aconitate` DOUBLE NULL DEFAULT NULL,
+  `adenine` DOUBLE NULL DEFAULT NULL,
+  `adipate` DOUBLE NULL DEFAULT NULL,
+  `alpha-ketoglutarate` DOUBLE NULL DEFAULT NULL,
+  `AMP` DOUBLE NULL DEFAULT NULL,
+  `citrate` DOUBLE NULL DEFAULT NULL,
+  `isocitrate` DOUBLE NULL DEFAULT NULL,
+  `CMP` DOUBLE NULL DEFAULT NULL,
+  `cystathionine` DOUBLE NULL DEFAULT NULL,
+  `cytidine` DOUBLE NULL DEFAULT NULL,
+  `dCMP` DOUBLE NULL DEFAULT NULL,
+  `DHAP_glyceraldehyde_3P` DOUBLE NULL DEFAULT NULL,
+  `erythrose-4-phosphate` DOUBLE NULL DEFAULT NULL,
+  `F1P_F6P_G1P_G6P` DOUBLE NULL DEFAULT NULL,
+  `hexoses_HILIC_neg_` DOUBLE NULL DEFAULT NULL,
+  `fumarate_maleate_alpha-ketoisovalerate` DOUBLE NULL DEFAULT NULL,
+  `glucuronate` DOUBLE NULL DEFAULT NULL,
+  `glutathione_oxidized` DOUBLE NULL DEFAULT NULL,
+  `glutathione_reduced` DOUBLE NULL DEFAULT NULL,
+  `GMP` DOUBLE NULL DEFAULT NULL,
+  `guanosine` DOUBLE NULL DEFAULT NULL,
+  `hippurate` DOUBLE NULL DEFAULT NULL,
+  `hypoxanthine` DOUBLE NULL DEFAULT NULL,
+  `inosine` DOUBLE NULL DEFAULT NULL,
+  `kynurenine` DOUBLE NULL DEFAULT NULL,
+  `lactate` DOUBLE NULL DEFAULT NULL,
+  `lactose` DOUBLE NULL DEFAULT NULL,
+  `malate` DOUBLE NULL DEFAULT NULL,
+  `NAD` DOUBLE NULL DEFAULT NULL,
+  `NADP` DOUBLE NULL DEFAULT NULL,
+  `oxalate` DOUBLE NULL DEFAULT NULL,
+  `pantothenate` DOUBLE NULL DEFAULT NULL,
+  `PEP` DOUBLE NULL DEFAULT NULL,
+  `ribose-5-P_ribulose5-P` DOUBLE NULL DEFAULT NULL,
+  `sorbitol` DOUBLE NULL DEFAULT NULL,
+  `succinate_methylmalonate` DOUBLE NULL DEFAULT NULL,
+  `sucrose` DOUBLE NULL DEFAULT NULL,
+  `thymine` DOUBLE NULL DEFAULT NULL,
+  `UMP` DOUBLE NULL DEFAULT NULL,
+  `UDP-galactose_UDP-glucose` DOUBLE NULL DEFAULT NULL,
+  `uracil` DOUBLE NULL DEFAULT NULL,
+  `urate` DOUBLE NULL DEFAULT NULL,
+  `uridine` DOUBLE NULL DEFAULT NULL,
+  `xanthine` DOUBLE NULL DEFAULT NULL,
+  `taurocholate` DOUBLE NULL DEFAULT NULL,
+  `glycodeoxycholate_glycochenodeoxycholate` DOUBLE NULL DEFAULT NULL,
+  `taurodeoxycholate_taurochenodeoxycholate` DOUBLE NULL DEFAULT NULL,
+  `phosphocreatine` DOUBLE NULL DEFAULT NULL,
+  `3-methyladipate_pimelate` DOUBLE NULL DEFAULT NULL,
+  `6-phosphogluconate` DOUBLE NULL DEFAULT NULL,
+  `alpha-hydroxybutyrate` DOUBLE NULL DEFAULT NULL,
+  `2-hydroxyglutarate` DOUBLE NULL DEFAULT NULL,
+  `inositol` DOUBLE NULL DEFAULT NULL,
+  `malondialdehyde` DOUBLE NULL DEFAULT NULL,
+  `glycine` DOUBLE NULL DEFAULT NULL,
+  `alanine` DOUBLE NULL DEFAULT NULL,
+  `serine` DOUBLE NULL DEFAULT NULL,
+  `threonine` DOUBLE NULL DEFAULT NULL,
+  `methionine` DOUBLE NULL DEFAULT NULL,
+  `aspartate` DOUBLE NULL DEFAULT NULL,
+  `glutamate` DOUBLE NULL DEFAULT NULL,
+  `asparagine` DOUBLE NULL DEFAULT NULL,
+  `glutamine` DOUBLE NULL DEFAULT NULL,
+  `histidine` DOUBLE NULL DEFAULT NULL,
+  `arginine` DOUBLE NULL DEFAULT NULL,
+  `lysine` DOUBLE NULL DEFAULT NULL,
+  `valine` DOUBLE NULL DEFAULT NULL,
+  `leucine` DOUBLE NULL DEFAULT NULL,
+  `isoleucine` DOUBLE NULL DEFAULT NULL,
+  `phenylalanine` DOUBLE NULL DEFAULT NULL,
+  `tyrosine` DOUBLE NULL DEFAULT NULL,
+  `tryptophan` DOUBLE NULL DEFAULT NULL,
+  `proline` DOUBLE NULL DEFAULT NULL,
+  `cis_trans-hydroxyproline` DOUBLE NULL DEFAULT NULL,
+  `ornithine` DOUBLE NULL DEFAULT NULL,
+  `citrulline` DOUBLE NULL DEFAULT NULL,
+  `taurine` DOUBLE NULL DEFAULT NULL,
+  `5-HIAA` DOUBLE NULL DEFAULT NULL,
+  `serotonin` DOUBLE NULL DEFAULT NULL,
+  `GABA` DOUBLE NULL DEFAULT NULL,
+  `acetylglycine` DOUBLE NULL DEFAULT NULL,
+  `dimethylglycine` DOUBLE NULL DEFAULT NULL,
+  `homocysteine` DOUBLE NULL DEFAULT NULL,
+  `SDMA_ADMA` DOUBLE NULL DEFAULT NULL,
+  `NMMA` DOUBLE NULL DEFAULT NULL,
+  `allantoin` DOUBLE NULL DEFAULT NULL,
+  `anthranilic_acid` DOUBLE NULL DEFAULT NULL,
+  `kynurenic_acid` DOUBLE NULL DEFAULT NULL,
+  `5-adenosylhomocysteine` DOUBLE NULL DEFAULT NULL,
+  `carnosine` DOUBLE NULL DEFAULT NULL,
+  `N-carbamoyl-beta-alanine` DOUBLE NULL DEFAULT NULL,
+  `thiamine` DOUBLE NULL DEFAULT NULL,
+  `niacinamide` DOUBLE NULL DEFAULT NULL,
+  `betaine` DOUBLE NULL DEFAULT NULL,
+  `choline` DOUBLE NULL DEFAULT NULL,
+  `alpha-glycerophosphocholine` DOUBLE NULL DEFAULT NULL,
+  `acetylcholine` DOUBLE NULL DEFAULT NULL,
+  `creatine` DOUBLE NULL DEFAULT NULL,
+  `creatinine` DOUBLE NULL DEFAULT NULL,
+  `thyroxine` DOUBLE NULL DEFAULT NULL,
+  `trimethylamine-N-oxide` DOUBLE NULL DEFAULT NULL,
+  `hexoses_HILIC_pos` DOUBLE NULL DEFAULT NULL,
+  `adenosine` DOUBLE NULL DEFAULT NULL,
+  `thymidine` DOUBLE NULL DEFAULT NULL,
+  `xanthosine` DOUBLE NULL DEFAULT NULL,
+  `2-deoxyadenosine` DOUBLE NULL DEFAULT NULL,
+  `2-deoxycytidine` DOUBLE NULL DEFAULT NULL,
+  `cAMP` DOUBLE NULL DEFAULT NULL,
+  `cotinine` DOUBLE NULL DEFAULT NULL,
+  `pipecolic_acid` DOUBLE NULL DEFAULT NULL,
+  `pyroglutamic_acid` DOUBLE NULL DEFAULT NULL,
+  `1-methylnicotinamide` DOUBLE NULL DEFAULT NULL,
+  `butyrobetaine` DOUBLE NULL DEFAULT NULL,
+  `putrescine` DOUBLE NULL DEFAULT NULL,
+  `methionine sulfoxide` DOUBLE NULL DEFAULT NULL,
+  `carnitine` DOUBLE NULL DEFAULT NULL,
+  `acetylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `propionylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `malonylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `butyrylcarnitine_isobutyrylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `valerylcarnitine_isovalerylcarnitine_2-methylbutyroylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `hexanoylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `heptanoylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `lauroylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `myristoylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `palmitoylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `stearoylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `oleylcarnitine` DOUBLE NULL DEFAULT NULL,
+  `arachidonyl_carnitine` DOUBLE NULL DEFAULT NULL,
+  `sarcosine` DOUBLE NULL DEFAULT NULL,
+  `beta-alanine` DOUBLE NULL DEFAULT NULL,
+  `anserine` DOUBLE NULL DEFAULT NULL,
+  PRIMARY KEY (`idMetabolomics`),
+  INDEX `fk_met_sample_id` (`idSample` ASC),
+  CONSTRAINT `fk_met_sample`
+    FOREIGN KEY (`idSample`)
+    REFERENCES `synergxdb`.`Sample` (`idSample`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Mono_Summary`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`Mono_Summary` (
+  `idMono_exp` INT(11) NOT NULL AUTO_INCREMENT,
+  `idSample` INT(11) NOT NULL,
+  `idDrug` INT(11) NOT NULL,
+  `aac` DOUBLE NULL DEFAULT NULL,
+  `ic50` DOUBLE NULL DEFAULT NULL,
+  `ec50` DOUBLE NULL DEFAULT NULL,
+  `idSource` INT(11) NOT NULL,
+  PRIMARY KEY (`idMono_exp`),
+  UNIQUE INDEX `idxViability2` (`idSample` ASC, `idDrug` ASC, `idSource` ASC),
+  INDEX `fk_Mono_exp_Drug_idx` (`idDrug` ASC),
+  INDEX `fk_Mono_exp_Cellline1_idx` (`idSample` ASC),
+  INDEX `idxViability` (`idSample` ASC, `idDrug` ASC),
+  INDEX `fk_Mono_Summary_Source1_idx` (`idSource` ASC),
+  CONSTRAINT `fk_Mono_exp_Cellline100`
+    FOREIGN KEY (`idSample`)
+    REFERENCES `synergxdb`.`Sample` (`idSample`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Mono_exp_Drug00`
+    FOREIGN KEY (`idDrug`)
+    REFERENCES `synergxdb`.`Drug` (`idDrug`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Mono_Summary_Source1`
+    FOREIGN KEY (`idSource`)
+    REFERENCES `synergxdb`.`Source` (`idSource`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Mutations`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`Mutations` (
+  `idSample` INT(11) NOT NULL,
+  `DepMap_ID` VARCHAR(20) NOT NULL,
+  `Hugo_Symbol` VARCHAR(100) NOT NULL,
+  `Entrez_Gene_Id` VARCHAR(100) NOT NULL,
+  `NCBI_Build` INT(5) NOT NULL,
+  `Chromosome` VARCHAR(5) NOT NULL,
+  `Start_position` INT(11) NOT NULL,
+  `End_position` INT(11) NOT NULL,
+  `Strand` VARCHAR(2) NOT NULL,
+  `Variant_Classification` VARCHAR(50) NOT NULL,
+  `Variant_Type` VARCHAR(10) NOT NULL,
+  `Reference_Allele` VARCHAR(255) NOT NULL,
+  `Tumore_Seq_Allele1` VARCHAR(255) NOT NULL,
+  `dbSNP_RS` VARCHAR(20) NOT NULL,
+  `Variant_annotation` VARCHAR(255) NOT NULL,
+  INDEX `fk_idSample_mut` (`idSample` ASC),
+  CONSTRAINT `fk_idSample_mut`
+    FOREIGN KEY (`idSample`)
+    REFERENCES `synergxdb`.`Sample` (`idSample`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`gene_identifiers`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`gene_identifiers` (
+  `gene_id` VARCHAR(20) NOT NULL,
+  `cosmic_gene_symbol` VARCHAR(20) NOT NULL,
+  `ensembl_gene_id` VARCHAR(20) NOT NULL,
+  `entrez_id` VARCHAR(20) NOT NULL,
+  `hgnc_id` VARCHAR(20) NOT NULL,
+  `hgnc_symbol` VARCHAR(50) NOT NULL,
+  `refseq_id` VARCHAR(20) NOT NULL,
+  `uniprot_id` VARCHAR(20) NOT NULL,
+  PRIMARY KEY (`gene_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`model_identifiers`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`model_identifiers` (
+  `idSample` INT(11) NOT NULL,
+  `model_id` VARCHAR(20) NOT NULL,
+  UNIQUE INDEX `idxModelIds` (`idSample` ASC, `model_id` ASC),
+  INDEX `idx_idSample` (`idSample` ASC),
+  INDEX `idx_model_id` (`model_id` ASC),
+  CONSTRAINT `fk_idSample`
+    FOREIGN KEY (`idSample`)
+    REFERENCES `synergxdb`.`Sample` (`idSample`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`RNAseq`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`RNAseq` (
+  `gene_id` VARCHAR(20) NOT NULL,
+  `model_id` VARCHAR(20) NOT NULL,
+  `read_count` INT(11) NULL DEFAULT NULL,
+  `fpkm` DOUBLE NULL DEFAULT NULL,
+  `dataset_name` VARCHAR(20) NULL DEFAULT NULL,
+  INDEX `idxRNAseq` (`model_id` ASC, `gene_id` ASC),
+  INDEX `idx_model_id` (`model_id` ASC),
+  INDEX `fk_gene_ids_idx` (`gene_id` ASC),
+  CONSTRAINT `fk_gene_ids`
+    FOREIGN KEY (`gene_id`)
+    REFERENCES `synergxdb`.`gene_identifiers` (`gene_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_model_ids`
+    FOREIGN KEY (`model_id`)
+    REFERENCES `synergxdb`.`model_identifiers` (`model_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Synergy_Score`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `synergxdb`.`Synergy_Score` (
+  `idSynergy_Score` INT(11) NOT NULL AUTO_INCREMENT,
+  `idCombo_Design` INT(11) NOT NULL,
+  `bliss` DOUBLE NULL DEFAULT NULL,
+  `loewe` DOUBLE NULL DEFAULT NULL,
+  `hsa` DOUBLE NULL DEFAULT NULL,
+  `zip` DOUBLE NULL DEFAULT NULL,
+  `idSource` INT(11) NOT NULL,
+  PRIMARY KEY (`idSynergy_Score`),
+  UNIQUE INDEX `idxSynergy2` (`idCombo_Design` ASC, `idSource` ASC),
+  INDEX `fk_Synergy_Score_Drug_Combo1_idx` (`idCombo_Design` ASC),
+  INDEX `fk_Synergy_Score_Source1_idx` (`idSource` ASC),
+  INDEX `idxSynergy` (`idCombo_Design` ASC),
+  CONSTRAINT `fk_Synergy_Score_Drug_Combo1`
+    FOREIGN KEY (`idCombo_Design`)
+    REFERENCES `synergxdb`.`Combo_Design` (`idCombo_Design`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Synergy_Score_Source1`
+    FOREIGN KEY (`idSource`)
+    REFERENCES `synergxdb`.`Source` (`idSource`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `synergxdb`.`Drug_source`
+-- -----------------------------------------------------
+CREATE TABLE `synergxdb`.`Drug_source` (
+  `idDrug` int(11) NOT NULL,
+  `idSource` int(11) NOT NULL,
+  UNIQUE KEY `idxDrugSource` (`idDrug`,`idSource`),
+  KEY `fk_DS_source` (`idSource`),
+  CONSTRAINT `fk_DS_drug` 
+    FOREIGN KEY (`idDrug`) 
+    REFERENCES `Drug` (`idDrug`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_DS_source` 
+    FOREIGN KEY (`idSource`) 
+    REFERENCES `Source` (`idSource`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION)
+ENGINE=InnoDB 
+DEFAULT CHARSET=utf8;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
