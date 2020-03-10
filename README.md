@@ -1,4 +1,5 @@
 # SYNERGxDB
+![SYNERGxDB logo](./imgs/SYNERGxDB_icon.png)  
 Development of the prototype of the SYNERGxDB  
 [Prototype](http://public.lootpiz.com/SYNERGxDB/)  
 [Production](http://SYNERGxDB.ca/)  
